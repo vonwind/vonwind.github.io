@@ -1,0 +1,50 @@
+/* ====== 自定义字体声明 ====== */
+
+/* 所有字体 */
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('/assets/fonts/cangercaozhebinkaishu.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ====== 应用字体样式 ====== */
+/* 正文 */
+body {
+  font-family: 'MyCustomFont',  sans-serif;
+}
+
+/* 标题 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'MyCustomFont',  sans-serif;
+  font-weight: bold;
+} 
+
+/* 行内代码 */
+code {
+  font-family: 'MyCustomFont', monospace;
+  font-size: 0.95em;
+}
+
+/* 多行代码块 */
+pre code {
+  font-family: 'MyCustomFont', monospace;
+  font-size: 1.5em;
+  line-height: 1.5;
+}
+
+/* Rouge/Prism 高亮后的代码块 */
+.highlight pre,
+.highlight code {
+  font-family: 'MyCustomFont', monospace;
+}
+
+.post-content p {
+  font-size: 2rem;   // 调整正文段落
+  line-height: 1.7;    // 行高
+}
+
+.post-content li {
+  font-size: 1.1rem;   // 列表文字大小
+}
+
