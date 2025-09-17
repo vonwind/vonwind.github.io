@@ -15,7 +15,18 @@ body {
 }
 
 /* 标题 */
-h1, h2, h3, h4, h5, h6 {
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+em,
+div,
+li,
+span,
+strong {
   font-family: 'MyCustomFont',  sans-serif;
   font-weight: bold;
 } 
