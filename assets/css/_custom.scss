@@ -60,5 +60,8 @@ pre code {
   font-size: 1.1rem;   // 列表文字大小
 }
 
-$base-font-size: 20px;
+/* 更改about模块图片下方的字体 */
+.about .about-info {
+  font-family: 'MyCustomFont',  sans-serif;
+}
 
