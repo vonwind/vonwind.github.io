@@ -65,3 +65,15 @@ pre code {
   font-family: 'MyCustomFont',  sans-serif;
 }
 
+/* 调整顶部菜单项的水平间距 */
+.navbar ul li {
+  margin-left: 0.8rem;   /* 默认可能是 1.5rem，改小一些 */
+  margin-right: 0.8rem;
+}
+
+/* 调整标签之间的间距 */
+.tag {
+  margin-right: 1rem;   /* 标签之间的水平间距 */
+//  margin-bottom: 0.4rem;  /* 标签换行时的垂直间距 */
+}
+
