@@ -72,8 +72,15 @@ pre code {
 }
 
 /* 调整标签之间的间距 */
-.tag {
-  margin-right: 0.2rem;   /* 标签之间的水平间距 */
-//  margin-bottom: 0.4rem;  /* 标签换行时的垂直间距 */
+.header-bar {
+  border-bottom: 1px solid var(--global-divider-color);
+  text-align: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  h1 {
+    color: var(--global-theme-color);
+    font-size: 5rem;
+  }
 }
 
