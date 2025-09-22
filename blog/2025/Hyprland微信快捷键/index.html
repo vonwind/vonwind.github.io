@@ -452,50 +452,28 @@ hyprctl dispatch focuswindow <span class="s2">"address:</span><span class="k">${
 <span class="c"># SUPER+T -&gt; Telegram</span>
 <span class="nb">bind</span> <span class="o">=</span> SUPER, T, <span class="nb">exec</span>, ~/scripts/toggle-app.sh telegram <span class="s2">"telegram-desktop"</span>
 
-</code></pre></div></div> <h2 id="说明">说明</h2> <ul> <li> <p>第一个参数 <code class="language-plaintext highlighter-rouge">$1</code> 用来匹配窗口的 <strong>class 名</strong>（通过 <code class="language-plaintext highlighter-rouge">hyprctl clients -j | jq '.[].class'</code> 查看实际值）。</p> </li> <li> <p>第二个参数 <code class="language-plaintext highlighter-rouge">$2</code> 是应用的启动命令。</p> </li> <li> <p>这样一个脚本就能管理多个应用，配置文件里只需要传不同参数即可。</p> </li> <li> <p>如果你有 Wine/Deepin 的微信，可以写成： ```shell bind = SUPER, W, exec, ~/scripts/toggle-app.sh wechat “/opt/deepinwine/apps/Deepin-WeChat/wechat”</p> </li> </ul> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div> <h2 id="说明">说明</h2> <ul> <li> <p>第一个参数 <code class="language-plaintext highlighter-rouge">$1</code> 用来匹配窗口的 <strong>class 名</strong>（通过 <code class="language-plaintext highlighter-rouge">hyprctl clients -j | jq '.[].class'</code> 查看实际值）。</p> </li> <li> <p>第二个参数 <code class="language-plaintext highlighter-rouge">$2</code> 是应用的启动命令。</p> </li> <li> <p>这样一个脚本就能管理多个应用，配置文件里只需要传不同参数即可。</p> </li> <li> <p>如果你有 Wine/Deepin 的微信，可以写成：</p> <div class="language-shell highlighter-rouge"> <div class="highlight"><pre class="highlight"><code><span class="nb">bind</span> <span class="o">=</span> SUPER, W, <span class="nb">exec</span>, ~/scripts/toggle-app.sh wechat <span class="s2">"/opt/deepinwine/apps/Deepin-WeChat/wechat"</span>
+</code></pre></div> </div> </li> </ul> <p>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</p> <p>要不要我帮你写一个 <strong>自动配置检测工具</strong>，比如输入应用名就能输出它的 class 和你需要写在绑定里的命令？这样可以快速调试微信这种特殊的 Wine 应用。</p> <p>好的</p> <p>👌 那我帮你写一个 <strong>自动检测工具</strong>，可以快速找出某个应用窗口的 <code class="language-plaintext highlighter-rouge">class</code> 和启动命令，方便配置到脚本里。</p> <p>脚本：<code class="language-plaintext highlighter-rouge">~/scripts/find-app-class.sh</code></p> <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/usr/bin/env bash</span>
+<span class="nb">set</span> <span class="nt">-euo</span> pipefail
 
+<span class="nv">APP</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">1</span><span class="k">:-}</span><span class="s2">"</span>
 
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$APP</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"用法: </span><span class="nv">$0</span><span class="s2"> &lt;关键字&gt;"</span>
+  <span class="nb">echo</span> <span class="s2">"例如: </span><span class="nv">$0</span><span class="s2"> wechat"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+</span><span class="nb">echo</span> <span class="s2">"正在查找包含 '</span><span class="nv">$APP</span><span class="s2">' 的窗口..."</span>
 
-
-
-要不要我帮你写一个 **自动配置检测工具**，比如输入应用名就能输出它的 class 和你需要写在绑定里的命令？这样可以快速调试微信这种特殊的 Wine 应用。
-
-
-好的
-
-
-
-👌 那我帮你写一个 **自动检测工具**，可以快速找出某个应用窗口的 `class` 和启动命令，方便配置到脚本里。
-
-
-
-脚本：`~/scripts/find-app-class.sh`
-
-
-```shell
-#!/usr/bin/env bash
-set -euo pipefail
-
-APP="${1:-}"
-
-if [ -z "$APP" ]; then
-  echo "用法: $0 &lt;关键字&gt;"
-  echo "例如: $0 wechat"
-  exit 1
-fi
-
-echo "正在查找包含 '$APP' 的窗口..."
-
-hyprctl clients -j | jq -r --arg app "$APP" '
+hyprctl clients <span class="nt">-j</span> | jq <span class="nt">-r</span> <span class="nt">--arg</span> app <span class="s2">"</span><span class="nv">$APP</span><span class="s2">"</span> <span class="s1">'
   .[]
   | select(
       (.class // "" | ascii_downcase | contains($app|ascii_downcase))
       or
       (.title // "" | ascii_downcase | contains($app|ascii_downcase))
     )
-  | "class=\(.class)  title=\(.title)  address=\(.address)  ws=\(.workspace.id)"'
+  | "class=\(.class)  title=\(.title)  address=\(.address)  ws=\(.workspace.id)"'</span>
 
 </code></pre></div></div> <h2 id="用法">用法</h2> <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x ~/scripts/find-app-class.sh
 ~/scripts/find-app-class.sh wechat
