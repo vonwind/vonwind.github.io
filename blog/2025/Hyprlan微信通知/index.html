@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"> <html><body> <p>from Grok</p> <p>hyprland 使用一个软件比如telegram通知怎么配置</p> <h3 id="在-hyprland-中配置微信等软件的通知">在 Hyprland 中配置微信等软件的通知</h3> <p>Hyprland 作为 Wayland 合成器，需要外部通知守护进程来处理应用通知。微信（通常指 WeChat for Linux 或 uos-wechat 等第三方客户端）通过 D-Bus 发送通知，与 Telegram 类似。推荐使用 <strong>mako</strong>（轻量 Wayland 原生支持）或 <strong>dunst</strong>。以下是完整配置步骤，基于 Arch Linux（其他发行版调整包管理器即可）。</p> <h4 id="步骤-1-安装微信和通知守护进程">步骤 1: 安装微信和通知守护进程</h4> <ul> <li> <strong>安装微信</strong>： <ul> <li>官方 WeChat for Linux（如果可用）：从 <a href="https://weixin.qq.com/" rel="external nofollow noopener" target="_blank">腾讯官网</a> 下载 .deb/.rpm，或使用 AUR： <div class="language-plaintext highlighter-rouge"> <div class="highlight"><pre class="highlight"><code>yay -S wechat-for-linux  # Arch/AUR 用户
+# 或 flatpak install flathub com.qq.weixin.work
+</code></pre></div> </div> </li> <li>第三方客户端（如 wechat-uos，推荐稳定）： <div class="language-plaintext highlighter-rouge"> <div class="highlight"><pre class="highlight"><code>yay -S wechat-uos  # 或从 GitHub 下载
+</code></pre></div> </div> </li> <li>安装后，在微信设置中启用通知：<strong>我 &gt; 设置 &gt; 通用 &gt; 消息通知 &gt; 开启新消息提醒</strong>。禁用“消息提醒时置顶窗口”以避免焦点切换。</li> </ul> </li> <li> <strong>安装通知守护进程</strong>： <div class="language-plaintext highlighter-rouge"> <div class="highlight"><pre class="highlight"><code>sudo pacman -S mako  # 推荐 mako
+# 或 sudo pacman -S dunst  # 备选 dunst
+</code></pre></div> </div> </li> </ul> <h4 id="步骤-2-在-hyprland-配置中启动守护进程">步骤 2: 在 Hyprland 配置中启动守护进程</h4> <p>编辑 <code class="language-plaintext highlighter-rouge">~/.config/hypr/hyprland.conf</code>，在 <code class="language-plaintext highlighter-rouge">exec-once</code> 部分添加：</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>exec-once = mako  # 使用 mako
+# 或 exec-once = dunst  # 使用 dunst
+</code></pre></div></div> <p>重载配置：<code class="language-plaintext highlighter-rouge">Super + Shift + R</code> 或 <code class="language-plaintext highlighter-rouge">hyprctl reload</code>。</p> <h4 id="步骤-3-配置通知守护进程">步骤 3: 配置通知守护进程</h4> <p>微信通知通常显示为“新消息”标题 + 聊天内容。自定义位置、样式等。</p> <ul> <li> <strong>mako 配置</strong>（简单推荐）： 创建/编辑 <code class="language-plaintext highlighter-rouge">~/.config/mako/config</code>： <div class="language-plaintext highlighter-rouge"> <div class="highlight"><pre class="highlight"><code># 全局设置
+font=sans-serif 10
+background-color=#333333CC  # 半透明背景
+text-color=#FFFFFF
+border-color=#FFFFFF
+border-size=2
+border-radius=10
+padding=10
+margin=10
+default-timeout=5000ms  # 5 秒显示
+
+# 位置：右上角
+anchor=top-right
+layer=overlay
+
+# 紧急通知（微信重要消息）
+[urgency=high]
+default-timeout=0  # 永久显示
+</code></pre></div> </div> <ul> <li> <strong>微信特定规则</strong>（可选，匹配 app_name）： <div class="language-plaintext highlighter-rouge"> <div class="highlight"><pre class="highlight"><code>[app-name=WeChat]
+default-timeout=8000ms  # 微信通知显示 8 秒
+</code></pre></div> </div> </li> </ul> <p>测试：<code class="language-plaintext highlighter-rouge">notify-send -a WeChat "测试" "Hello from WeChat!"</code>。看到通知即成功。</p> </li> <li> <strong>dunst 配置</strong>（如果选择 dunst）： 创建/编辑 <code class="language-plaintext highlighter-rouge">~/.config/dunst/dunstrc</code>： <div class="language-plaintext highlighter-rouge"> <div class="highlight"><pre class="highlight"><code># 全局设置
+font = sans-serif 10
+frame_color = "#FFFFFF"
+frame_width = 2
+padding = 10
+horizontal_padding = 10
+text_icon_padding = 10
+gap_size = 10
+
+# 位置：右上角
+alignment = center
+origin = top-right
+offset = 10x10
+
+# 颜色和透明度
+transparency = 10
+background = "#333333CC"
+foreground = "#FFFFFF"
+markup = full
+
+# 持续时间
+timeout = 5
+
+# 微信规则（匹配 app_name="WeChat" 或 "wechat-uos"）
+[wechat]
+app_name = WeChat
+summary = "*"
+body = "*"
+icon = /usr/share/icons/hicolor/256x256/apps/wechat.png  # 微信图标路径（调整为实际）
+timeout = 8  # 8 秒
+urgency = normal
+</code></pre></div> </div> <p>测试：<code class="language-plaintext highlighter-rouge">notify-send -a WeChat "测试" "新消息!"</code>。重启：<code class="language-plaintext highlighter-rouge">pkill dunst</code>。</p> </li> </ul> <h4 id="步骤-4-处理常见问题">步骤 4: 处理常见问题</h4> <ul> <li> <strong>通知不显示</strong>： <ul> <li>测试 D-Bus：<code class="language-plaintext highlighter-rouge">notify-send "Test"</code>。</li> <li>确保微信在 Wayland 模式运行：添加环境变量到 <code class="language-plaintext highlighter-rouge">~/.profile</code>： <div class="language-plaintext highlighter-rouge"> <div class="highlight"><pre class="highlight"><code>export QT_QPA_PLATFORM=wayland
+export ELECTRON_OZONE_PLATFORM_HINT=auto  # 如果是 Electron 版微信
+</code></pre></div> </div> </li> <li>检查 app_name：运行微信时，用 <code class="language-plaintext highlighter-rouge">notify-send</code> 测试不同名称（如 “WeChat” 或 “org.wechat”），或用 <code class="language-plaintext highlighter-rouge">dbus-monitor</code> 监控（<code class="language-plaintext highlighter-rouge">dbus-monitor --session</code> 发送通知观察）。</li> <li>Flatpak 版微信：添加 <code class="language-plaintext highlighter-rouge">--socket=wayland</code> 启动：<code class="language-plaintext highlighter-rouge">flatpak run --socket=wayland com.qq.weixin.work</code>。</li> </ul> </li> <li> <strong>焦点切换或工作区跳转</strong>（微信常见）： <ul> <li>Hyprland 配置添加：<code class="language-plaintext highlighter-rouge">misc { focus_on_activate = false }</code>。</li> <li>窗口规则忽略微信：<code class="language-plaintext highlighter-rouge">windowrulev2 = nofocus,class:^(WeChat)$</code> 或 <code class="language-plaintext highlighter-rouge">windowrulev2 = workspace 10,class:^(WeChat)$</code>（固定到工作区）。</li> <li>微信设置中禁用“新消息弹窗”或“声音提醒”如果干扰。</li> </ul> </li> <li> <strong>自定义声音</strong>： <ul> <li>mako/dunst 配置中添加 <code class="language-plaintext highlighter-rouge">sound-file=/usr/share/sounds/freedesktop/stereo/message.ogg</code>（全局）。</li> <li>微信自带声音，确保 PipeWire 运行：<code class="language-plaintext highlighter-rouge">systemctl --user start pipewire pipewire-pulse</code>。</li> </ul> </li> <li> <strong>通知历史</strong>（可选）： <ul> <li>安装 <code class="language-plaintext highlighter-rouge">swaync</code>：<code class="language-plaintext highlighter-rouge">sudo pacman -S swaync</code>，Hyprland conf 添加 <code class="language-plaintext highlighter-rouge">exec-once = swaync -g floating</code>。提供 GUI 查看/过滤微信通知。</li> </ul> </li> </ul> <h4 id="测试微信通知">测试微信通知</h4> <ol> <li>重启 Hyprland。</li> <li>打开微信，让朋友发消息或自发测试消息。</li> <li>右上角应弹出通知，点击可跳转聊天。</li> </ol> <p>如果微信是特定版本（如 wechat-for-linux），app_name 可能为 “WeCom” 或 “WeChatWork”，调整规则相应。问题排查：查看 <code class="language-plaintext highlighter-rouge">hyprctl logs</code> 或 <a href="https://wiki.hyprland.org/Useful-Utilities/Notification-Daemons/" rel="external nofollow noopener" target="_blank">Hyprland Wiki</a>。更多微信 Linux 细节见 <a href="https://wiki.archlinux.org/title/WeChat" rel="external nofollow noopener" target="_blank">Arch Wiki</a>。配置类似其他 IM 应用！</p> <p>👌 那我帮你写一个 <strong>自动检测工具</strong>，可以快速找出某个应用窗口的 <code class="language-plaintext highlighter-rouge">class</code> 和启动命令，方便配置到脚本里。</p> <hr> <h2 id="脚本scriptsfind-app-classsh">脚本：<code class="language-plaintext highlighter-rouge">~/scripts/find-app-class.sh</code> </h2> <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/usr/bin/env bash</span>
+<span class="nb">set</span> <span class="nt">-euo</span> pipefail
+
+<span class="nv">APP</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">1</span><span class="k">:-}</span><span class="s2">"</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$APP</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"用法: </span><span class="nv">$0</span><span class="s2"> &lt;关键字&gt;"</span>
+  <span class="nb">echo</span> <span class="s2">"例如: </span><span class="nv">$0</span><span class="s2"> wechat"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">echo</span> <span class="s2">"正在查找包含 '</span><span class="nv">$APP</span><span class="s2">' 的窗口..."</span>
+
+hyprctl clients <span class="nt">-j</span> | jq <span class="nt">-r</span> <span class="nt">--arg</span> app <span class="s2">"</span><span class="nv">$APP</span><span class="s2">"</span> <span class="s1">'
+  .[]
+  | select(
+      (.class // "" | ascii_downcase | contains($app|ascii_downcase))
+      or
+      (.title // "" | ascii_downcase | contains($app|ascii_downcase))
+    )
+  | "class=\(.class)  title=\(.title)  address=\(.address)  ws=\(.workspace.id)"'</span>
+</code></pre></div></div> <hr> <h2 id="用法">用法</h2> <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x ~/scripts/find-app-class.sh
+~/scripts/find-app-class.sh wechat
+</code></pre></div></div> <p>输出示例（不同应用会不一样）：</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class=WeChat.exe  title=微信  address=0x55a6f3b  ws=2
+</code></pre></div></div> <p>这样你就知道：</p> <ul> <li> <p><code class="language-plaintext highlighter-rouge">class</code> 是 <code class="language-plaintext highlighter-rouge">WeChat.exe</code>，那么在 <code class="language-plaintext highlighter-rouge">toggle-app.sh</code> 里传参要写 <code class="language-plaintext highlighter-rouge">WeChat.exe</code>（大小写敏感！）。</p> </li> <li> <p>启动命令则是你平时运行微信的命令，比如 <code class="language-plaintext highlighter-rouge">/opt/deepinwine/apps/Deepin-WeChat/wechat</code>。</p> </li> </ul> <hr> <h2 id="配置-hyprland-绑定">配置 Hyprland 绑定</h2> <p>拿到结果后，比如你发现微信的 class 是 <code class="language-plaintext highlighter-rouge">WeChat.exe</code>，就写：</p> <div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="py">bind</span> <span class="p">=</span> <span class="s">SUPER, W, exec, ~/scripts/toggle-app.sh WeChat.exe "/opt/deepinwine/apps/Deepin-WeChat/wechat"</span>
+</code></pre></div></div> <p>这样脚本才能正确匹配窗口。</p> <hr> <p>要不要我顺便帮你做一个 <strong>一键生成 Hyprland 配置行</strong> 的小脚本？比如你输入 <code class="language-plaintext highlighter-rouge">wechat /opt/deepinwine/apps/Deepin-WeChat/wechat</code>，它就自动输出正确的 <code class="language-plaintext highlighter-rouge">bind = ...</code> 配置。</p> </body></html>
