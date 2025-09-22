@@ -72,7 +72,18 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/blog/";
               },
-            },{id: "post-zero测试",
+            },{id: "post-hyprland微信快捷键",
+        
+          title: "Hyprland微信快捷键",
+        
+        description: "",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2025/Hyprland%E5%BE%AE%E4%BF%A1%E5%BF%AB%E6%8D%B7%E9%94%AE/";
+          
+        },
+      },{id: "post-zero测试",
         
           title: "Zero测试",
         

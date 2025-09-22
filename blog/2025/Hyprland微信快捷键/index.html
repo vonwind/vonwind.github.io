@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"> <html><body> <h3 id="自动检测版脚本">自动检测版脚本</h3> <p>保存为 <code class="language-plaintext highlighter-rouge">~/scripts/wechat-toggle.sh</code>：</p> <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="c"># 自动检测微信窗口 class</span>
+get_wechat_class<span class="o">()</span> <span class="o">{</span>
+    hyprctl clients | <span class="nb">grep</span> <span class="nt">-i</span> <span class="s2">"wechat"</span> | <span class="nb">grep</span> <span class="s2">"class:"</span> | <span class="nb">head</span> <span class="nt">-n1</span> | <span class="nb">awk</span> <span class="s1">'{print $2}'</span>
+<span class="o">}</span>
+
+<span class="nv">WIN_CLASS</span><span class="o">=</span><span class="si">$(</span>get_wechat_class<span class="si">)</span>
+
+<span class="c"># 如果没有检测到，默认用 wechat</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$WIN_CLASS</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nv">WIN_CLASS</span><span class="o">=</span><span class="s2">"wechat"</span>
+<span class="k">fi</span>
+
+<span class="c"># 检查微信是否运行</span>
+<span class="k">if</span> <span class="o">!</span> pgrep <span class="nt">-i</span> wechat <span class="o">&gt;</span>/dev/null<span class="p">;</span> <span class="k">then</span>
+    <span class="c"># 没有运行就启动</span>
+    wechat &amp;
+    <span class="nb">exit </span>0
+<span class="k">fi</span>
+
+<span class="c"># 微信在运行，检查窗口信息</span>
+<span class="nv">WIN_INFO</span><span class="o">=</span><span class="si">$(</span>hyprctl clients | <span class="nb">grep</span> <span class="nt">-i</span> <span class="s2">"class: </span><span class="nv">$WIN_CLASS</span><span class="s2">"</span> <span class="nt">-A</span> 10<span class="si">)</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$WIN_INFO</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+    <span class="c"># 没找到窗口（可能在后台），重新启动</span>
+    wechat &amp;
+    <span class="nb">exit </span>0
+<span class="k">fi</span>
+
+<span class="c"># 如果窗口已聚焦 → 最小化到一个隐藏 workspace</span>
+<span class="k">if </span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$WIN_INFO</span><span class="s2">"</span> | <span class="nb">grep</span> <span class="nt">-q</span> <span class="s2">"focused: yes"</span><span class="p">;</span> <span class="k">then
+    </span>hyprctl dispatch movetoworkspacesilent special:hidden <span class="s2">"class:^(?i)</span><span class="nv">$WIN_CLASS</span><span class="s2">$"</span>
+<span class="k">else</span>
+    <span class="c"># 否则聚焦到它</span>
+    hyprctl dispatch focuswindow <span class="s2">"class:^(?i)</span><span class="nv">$WIN_CLASS</span><span class="s2">$"</span>
+<span class="k">fi</span>
+</code></pre></div></div> <h3 id="使用方法">使用方法</h3> <ol> <li>给权限： <div class="language-shell highlighter-rouge"> <div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x ~/scripts/wechat-toggle.sh
+</code></pre></div> </div> </li> <li>在 <code class="language-plaintext highlighter-rouge">~/.config/hypr/hyprland.conf</code> 里添加： <div class="language-shell highlighter-rouge"> <div class="highlight"><pre class="highlight"><code><span class="nb">bind</span> <span class="o">=</span> SUPER, W, <span class="nb">exec</span>, ~/scripts/wechat-toggle.sh
+</code></pre></div> </div> </li> </ol> <p>这样效果就是：</p> <ul> <li> <p><code class="language-plaintext highlighter-rouge">SUPER + W</code></p> <ul> <li> <p>如果微信没开 → 启动微信</p> </li> <li> <p>如果微信在后台 → 切换到前台</p> </li> <li> <p>如果微信已在前台 → 隐藏到一个 <code class="language-plaintext highlighter-rouge">special:hidden</code> 的 workspace</p> </li> </ul> </li> </ul> </body></html>
